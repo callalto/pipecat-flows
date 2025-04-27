@@ -675,12 +675,17 @@ class FlowManager:
                     logger.warning("Summary generation timed out, falling back to RESET strategy")
                     update_config.strategy = ContextStrategy.RESET
 
-            # For first node or RESET/RESET_WITH_SUMMARY strategy, use update frame
+            if (update_config.strategy == ContextStrategy.TRIM) and self._context_aggregator and self._context_aggregator.user():
+                previous_messages = self.get_current_context()
+
+                if len(previous_messages):
+                    messages = [previous_messages[0]] + previous_messages[-5:] + messages
+
             frame_type = (
                 LLMMessagesUpdateFrame
                 if self.current_node is None
                 or update_config.strategy
-                in [ContextStrategy.RESET, ContextStrategy.RESET_WITH_SUMMARY]
+                in [ContextStrategy.RESET, ContextStrategy.RESET_WITH_SUMMARY, ContextStrategy.TRIM]
                 else LLMMessagesAppendFrame
             )
 
