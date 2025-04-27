@@ -139,11 +139,13 @@ class ContextStrategy(Enum):
         APPEND: Append new messages to existing context (default)
         RESET: Reset context with new messages only
         RESET_WITH_SUMMARY: Reset context but include an LLM-generated summary
+        TRIM: Trim context to a specified messages size
     """
 
     APPEND = "append"
     RESET = "reset"
     RESET_WITH_SUMMARY = "reset_with_summary"
+    TRIM = "trim"
 
 
 @dataclass
@@ -153,15 +155,19 @@ class ContextStrategyConfig:
     Attributes:
         strategy: Strategy to use for context management
         summary_prompt: Required prompt text when using RESET_WITH_SUMMARY
+        trim_length: Maximum number of messages to retain when using TRIM
     """
 
     strategy: ContextStrategy
     summary_prompt: Optional[str] = None
+    trim_length: Optional[int] = None
 
     def __post_init__(self):
         """Validate configuration."""
         if self.strategy == ContextStrategy.RESET_WITH_SUMMARY and not self.summary_prompt:
             raise ValueError("summary_prompt is required when using RESET_WITH_SUMMARY strategy")
+        if self.strategy == ContextStrategy.TRIM and not self.trim_length:
+            raise ValueError("trim_length is required when using TRIM strategy")
 
 
 @dataclass
