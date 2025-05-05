@@ -678,6 +678,13 @@ class FlowManager:
             if (update_config.strategy == ContextStrategy.TRIM) and self._context_aggregator and self._context_aggregator.user():
                 previous_messages = self.get_current_context()
 
+                if "GoogleLLMService" in str(type(self.llm)) and previous_messages and len(previous_messages) > 5:
+                    first_message = previous_messages[-5]
+                    if "function_response" in first_message.parts[0]:
+                        logger.debug("Removing leading function response message for Gemini TRIM strategy.")
+                        previous_messages = previous_messages[-4:]
+
+                # Keep the first message (likely system prompt) and the last 5 messages
                 if len(previous_messages):
                     messages = [previous_messages[0]] + previous_messages[-5:] + messages
 
